@@ -12,40 +12,45 @@ straightfoward implementation:
 function FullApp() {
   const [user, setUser] = useState(null)
   const token = window.localStorage.getItem('token')
-
   useEffect(() => {
-    // TODO: Fix this endpoint and this fetch call
     if (user) return
     fetch('http://localhost:4001/api/auth/me', {
-      method: 'GET',
       headers: {
-        Authorization: `bearer ${token}`,
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
-    }).then(
-      response => setUser(response.data),
-      () => {
-        window.localStorage.removeItem('token')
-        setUser(null)
-      },
-    )
+    })
+      .then(res => res.json())
+      .then(
+        ({ user }) => {
+          // TODO: testar um token inválido aqui.
+          setUser(user)
+          // window.localStorage.removeItem('token')
+          // setUser(null)
+        },
+        err => {
+          window.localStorage.removeItem('token')
+          setUser(null)
+        },
+      )
   }, [token, user])
+
+  // TODO: i need /me
   if (!user && token) {
     return <h1>loading...</h1>
   }
-  // return unauth app here
-  else if (!user && !token) {
+  if (!user && !token) {
     return <UnauthenticatedApp onSuccess={setUser} />
-  } else {
-    return (
-      <AuthenticatedApp
-        user={user}
-        logout={() => {
-          window.localStorage.removeItem('token')
-          setUser(null)
-        }}
-      />
-    )
   }
+  return (
+    <AuthenticatedApp
+      user={user}
+      logout={() => {
+        window.localStorage.removeItem('token')
+        setUser(null)
+      }}
+    />
+  )
 }
 
 ReactDOM.render(
