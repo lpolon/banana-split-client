@@ -5,7 +5,6 @@ export default function LoginForm({ onSuccess }) {
   const [error, setError] = useState(null)
 
   function handleSubmit(event) {
-    console.log(event.target.elements)
     event.preventDefault()
     const {
       username: { value: username },
@@ -23,15 +22,17 @@ export default function LoginForm({ onSuccess }) {
         'Content-Type': 'application/json',
       },
     })
-      .then(res => {
-        return res.json()
-      })
+      .then(res => res.json())
       .then(json => {
         console.log(json)
         if (typeof json?.message !== 'undefined') return setError(json.message)
-        console.log(json.token)
-        // window.localStorage.setItem('token', token)
-        // onSuccess(token)
+        // TODO: Swap localstorage for httpOnly cookies
+        const {
+          token,
+          user,
+        } = json
+        window.localStorage.setItem('token', token)
+        onSuccess(user)
       })
   }, [formValues, onSuccess])
   return (
@@ -47,11 +48,9 @@ export default function LoginForm({ onSuccess }) {
         <input type="text" name="username" id="username"></input>
         <label htmlFor="password">password:</label>
         <input type="password" name="password" id="password"></input>
-        {/* TODO: some fetching here */}
-        {/* <button type="submit" onSubmit={setUser({ username, password })} /> */}
         <button type="submit">Submit</button>
       </form>
-      {error ? <div style={{color: 'red'}}>{`erro: ${error}`}</div> : null}
+      {error ? <div style={{ color: 'red' }}>{`erro: ${error}`}</div> : null}
     </div>
   )
 }
